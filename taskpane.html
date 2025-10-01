@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Генератор текста отчёта (Ollama · DeepSeek-R1)</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#60a5fa; --ok:#34d399; --err:#f87171; --border:#1f2937;
+    }
+    html, body { height:100%; margin:0; background:var(--bg); color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial; }
+    .wrap { height:100%; box-sizing:border-box; padding:16px; display:grid; grid-template-rows:auto auto 1fr auto; gap:12px; }
+    h1 { margin:0; font-size:16px; font-weight:600; }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:12px; }
+    .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+    label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    input, select, button, textarea { border-radius:10px; border:1px solid var(--border); background:#0b1220; color:var(--text); font-size:13px; }
+    input, select { padding:8px 10px; width:100%; }
+    textarea { width:100%; min-height:180px; padding:10px; line-height:1.4; resize:vertical; }
+    textarea[readonly]{ background:#0a0f1a; }
+    .controls { display:flex; flex-wrap:wrap; gap:8px; }
+    button { padding:8px 10px; cursor:pointer; border:1px solid #1f2937; background:#0b1220; transition:transform .02s ease; }
+    button:active{ transform:translateY(1px); }
+    .btn-primary{ background:linear-gradient(180deg,#2563eb,#1d4ed8); border-color:transparent; }
+    .btn-green{ background:linear-gradient(180deg,#059669,#047857); border-color:transparent; }
+    .btn-danger{ background:linear-gradient(180deg,#ef4444,#dc2626); border-color:transparent; }
+    .status { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); min-height:22px; }
+    .dot{ width:8px; height:8px; border-radius:50%; background:var(--muted); }
+    .dot.running{ background:var(--accent); box-shadow:0 0 0 4px rgba(96,165,250,.12); }
+    .dot.ok{ background:var(--ok); }
+    .dot.err{ background:var(--err); }
+    .hint{ font-size:11px; color:var(--muted); }
+    .chk-line { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--muted); }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Технический писатель (DeepSeek-R1)</h1>
+
+    <div class="card grid2">
+      <div>
+        <label for="host">Ollama host (или HTTPS-прокси)</label>
+        <input id="host" type="text" placeholder="https://localhost:3000" />
+        <div class="hint">Совет: проксируйте Ollama через этот же HTTPS-сервер как <code>/api/*</code>, чтобы не было mixed content.</div>
+      </div>
+      <div>
+        <label for="model">Модель</label>
+        <input id="model" type="text" value="deepseek-r1:14b" />
+        <div class="hint">Убедитесь, что модель есть: <code>ollama pull deepseek-r1:14b</code></div>
+      </div>
+    </div>
+
+    <div class="card grid2">
+      <div>
+        <label for="template">Шаблон</label>
+        <select id="template">
+          <option value="finding" selected>Finding / Уязвимость</option>
+          <option value="exec">Executive Summary</option>
+          <option value="method">Методология / Шаги теста</option>
+        </select>
+      </div>
+      <div class="grid3">
+        <div>
+          <label for="language">Язык</label>
+          <select id="language">
+            <option value="ru" selected>Русский</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div>
+          <label for="severity">Критичность (опц.)</label>
+          <select id="severity">
+            <option value="">—</option>
+            <option>Informational</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
+          </select>
+        </div>
+        <div>
+          <label for="conciseness">Краткость</label>
+          <select id="conciseness">
+            <option value="concise" selected>Кратко</option>
+            <option value="balanced">Сбалансировано</option>
+            <option value="detailed">Подробно</option>
+          </select>
+        </div>
+      </div>
+      <div class="chk-line" style="grid-column:1/-1">
+        <label><input type="checkbox" id="secContext" checked /> Контекст</label>
+        <label><input type="checkbox" id="secObservation" checked /> Наблюдение</label>
+        <label><input type="checkbox" id="secTech" checked /> Технические детали</label>
+        <label><input type="checkbox" id="secImpact" checked /> Влияние</label>
+        <label><input type="checkbox" id="secEvidence" /> Доказательства</label>
+        <label><input type="checkbox" id="secRecom" checked /> Рекомендации</label>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <label for="sourceText">Формальное описание (пункты/факты/артефакты)</label>
+        <textarea id="sourceText" placeholder="- Хост: 10.0.1.15
+- Сервис: OpenSSH 8.2p1 на 22/tcp
+- Метод: брутфорс словарём из 5k
+- Обнаружено: вход по паролю для root разрешён
+- Доказательство: успешный логин root:toor
+- Замечание: PAM без 2FA"></textarea>
+        <div class="controls" style="margin-top:8px">
+          <button id="btnLoadFromSelection" title="Загрузить выделенный текст из Word">Загрузить из документа</button>
+          <button id="btnClear">Очистить</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <label for="rewrittenText">Сформированный официальный текст</label>
+        <textarea id="rewrittenText" readonly placeholder="Здесь появится итоговый текст..."></textarea>
+        <div class="controls" style="margin-top:8px">
+          <button id="btnInsertToDoc" class="btn-green">Вставить в документ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="controls">
+        <button id="btnRewrite" class="btn-primary">Сгенерировать</button>
+        <button id="btnStop" class="btn-danger">Стоп</button>
+      </div>
+      <div id="status" class="status" style="margin-top:8px">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Готово.</span>
+      </div>
+      <div class="hint" style="margin-top:6px">
+        Горячая клавиша: Ctrl/Cmd + Enter — сгенерировать.
+      </div>
+    </div>
+  </div>
+
+  <script src="./taskpane.js"></script>
+</body>
+</html>

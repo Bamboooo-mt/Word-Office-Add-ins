@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:type="TaskPaneApp">
+  <!-- Стабильный GUID; не меняйте между запусками -->
+  <Id>c0a80123-4567-890a-bcde-1234567890ab</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Ваша компания</ProviderName>
+  <DefaultLocale>ru-RU</DefaultLocale>
+
+  <DisplayName DefaultValue="Техписатель пентест-отчётов"/>
+  <Description DefaultValue="Генерация официально-делового текста из формального описания (Ollama · DeepSeek-R1)"/>
+
+  <!-- PNG-иконки обязательно по HTTPS -->
+  <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-128.png"/>
+
+  <SupportUrl DefaultValue="https://example.com/support"/>
+
+  <Hosts>
+    <Host Name="Document"/>
+  </Hosts>
+
+  <DefaultSettings>
+    <!-- HTTPS для прохождения валидатора -->
+    <SourceLocation DefaultValue="https://localhost:3000/taskpane.html"/>
+  </DefaultSettings>
+
+  <Permissions>ReadWriteDocument</Permissions>
+</OfficeApp>
