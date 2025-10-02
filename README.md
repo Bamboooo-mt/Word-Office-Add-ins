@@ -15,7 +15,7 @@
 
 ## Что нужно
 - **Microsoft Word** (Desktop, Windows/macOS).
-- **Node.js 18+** (для локального HTTPS‑сервера/утилит).
+- **Node.js** (для локального HTTPS‑сервера/утилит).
 - **Ollama** и модель:
 
 ```bash
